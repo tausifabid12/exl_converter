@@ -79,10 +79,9 @@ const keys = readJsonFile('outputKey.json');
 let collegedata;
 //exal
 const exalData = readJsonFile('output.json');
-const exalDataLength = exalData.length;
 function getcollege() {
     return __awaiter(this, void 0, void 0, function* () {
-        const response = yield fetch("http://127.0.0.1:4000/", {
+        const response = yield fetch("https://mycollegeindia.as.r.appspot.com/graphql", {
             method: "POST",
             body: JSON.stringify({
                 query: `
@@ -100,65 +99,28 @@ function getcollege() {
         });
         const { data } = yield response.json();
         collegedata = data;
-        console.log(data, 'this i sdata');
         return data;
     });
 }
-const UpdateCollege = () => __awaiter(void 0, void 0, void 0, function* () {
-    const data = yield getcollege();
-    const collegeData = data === null || data === void 0 ? void 0 : data.campuses;
-    console.log(collegeData, 'collegeData');
-});
-UpdateCollege();
-// for (let i = 0; i < exalData.length; i++) {
-//   const string1 = exalData[i][4];
-//   for (let j = 0; j < collegedata.length; j++) {
-//     const string2 = collegedata[j].name;
-//     const isMatch = fuzzySearch(string1, string2);
-//     if (isMatch) {
-//       const strr = string1.split(' (Id:')
-//       const id = strr[1].slice(1, -1)
-//       updateCollege(id, string1, collegedata[j]?.name)
-//       const updattedData = { ...collegedata[j], name: string1, id: id }
-//       newData.push(updattedData)
-//     }
-//     else {
-//       unMatchedData.push(collegedata[j]?.name)
-//     }
-//   }
-// }
-// console.log(newData, newData.length, 'newData')
-// console.log(unMatchedData, unMatchedData.length, 'unMatchedData')
-// const mergedArray = [...newData, ...collegedata];
-// const uniqueArray = mergedArray.filter(
-//   (item, index, self) =>
-//     index ===
-//     self.findIndex(
-//       (t) => t.link === item.link && t.name === item.name
-//     )
-// );
-// console.log(uniqueArray.length, 'uniqueArray');
-// //geting exams
 function updateCollege(id, name, where) {
     return __awaiter(this, void 0, void 0, function* () {
         const response = yield fetch("http://localhost:4000/", {
             method: "POST",
             body: JSON.stringify({
-                query: `mutation UpdateCampuses($update: CampusUpdateInput) {
-        updateCampuses(update: $update) {
-          campuses {
-            is_main
-            name
+                query: `
+      mutation UpdateCampuses($where: CampusWhere, $update: CampusUpdateInput) {
+          updateCampuses(where: $where, update: $update) {
+            campuses {
+              name
+            }
           }
-        }
-      }`,
+        }`,
                 variables: {
-                    update: {
-                        id: id,
-                        name: name
+                    "where": {
+                        "name": where
                     },
-                    where: {
-                        name: where
+                    "update": {
+                        "id": id
                     }
                 }
             }),
@@ -171,46 +133,26 @@ function updateCollege(id, name, where) {
         return data;
     });
 }
-// async function update3(id: string, name: string, where: string) {
-//   const response = await fetch("http://localhost:4000/", {
-//     method: "POST",
-//     body: JSON.stringify({
-//       query: `mutation UpdateCampuses($where: CampusWhere, $update: CampusUpdateInput) {
-//         updateCampuses(where: $where, update: $update) {
-//           campuses {
-//             name
-//             id
-//           }
-//         }
-//       }`,
-//       variables: {
-//         where: {
-//           collegeHas: {
-//             name: null
-//           }
-//         },
-//         update: {
-//           name: null
-//         }
-//       }
-//     }),
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//   });
-//   const { data } = await response.json();
-//   console.log(data, 'exam')
-//   return data;
-// }
-// const UpdateCollege = async () => {
-//   const data = await getcollege()
-//   const collegeData = data?.campuses
-//   console.log(collegeData, 'collegeData')
-// }
-// UpdateCollege()
-// getExams()
-// Usage example
-// const string1 = 'Aalim Muhammed Salegh College of Engineering,Chennai';
-// const string2 = 'Aalim Muhammed Salegh 3243  Engineering ';
-// const isMatch = fuzzySearch(string1, string2);
-// console.log(`Match found: ${isMatch}`);
+const all = () => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    const data = yield getcollege();
+    const collegeData = data === null || data === void 0 ? void 0 : data.campuses;
+    let count = 1;
+    for (let i = 0; i < exalData.length; i++) {
+        const string1 = exalData[i][4];
+        for (let j = 0; j < collegeData.length; j++) {
+            const string2 = collegeData[j].name;
+            const isMatch = fuzzySearch(string1, string2);
+            if (isMatch) {
+                count++;
+                const strr = string1.split(' (Id:');
+                const id = strr[1].slice(1, -1);
+                console.log(id, 'id', (_a = collegeData[j]) === null || _a === void 0 ? void 0 : _a.name);
+                updateCollege(id, string1, (_b = collegeData[j]) === null || _b === void 0 ? void 0 : _b.name);
+            }
+        }
+    }
+    console.log(count);
+});
+all();
+// //geting exams

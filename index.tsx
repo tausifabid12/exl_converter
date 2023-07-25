@@ -40,7 +40,6 @@ function readJsonFile(filePath: string): any {
   return jsonData;
 }
 
-
 function fuzzySearch(string1: string, string2: string): boolean {
   let currentIndex = 0;
   const string2Length = string2.length;
@@ -57,20 +56,18 @@ function fuzzySearch(string1: string, string2: string): boolean {
   return false;
 }
 
+
+
 const keys = readJsonFile('outputKey.json');
 // const collegedata = readJsonFile('collegedata.json');
 let collegedata: any
 
 
-
-
-
 //exal
 const exalData = readJsonFile('output.json');
-const exalDataLength = exalData.length
 
 async function getcollege() {
-  const response = await fetch("http://localhost:4000/", {
+  const response = await fetch("https://mycollegeindia.as.r.appspot.com/graphql", {
     method: "POST",
     body: JSON.stringify({
       query: `
@@ -90,92 +87,30 @@ async function getcollege() {
 
   const { data } = await response.json();
   collegedata = data
-  console.log(data, 'this i sdata')
+
   return data;
 }
 
-const UpdateCollege = async () => {
-  const data = await getcollege()
-  const collegeData = data?.campuses
-  console.log(collegeData, 'collegeData', data)
-}
-
-UpdateCollege()
 
 
-
-
-// for (let i = 0; i < exalData.length; i++) {
-//   const string1 = exalData[i][4];
-
-//   for (let j = 0; j < collegedata.length; j++) {
-//     const string2 = collegedata[j].name;
-
-//     const isMatch = fuzzySearch(string1, string2);
-
-//     if (isMatch) {
-
-//       const strr = string1.split(' (Id:')
-//       const id = strr[1].slice(1, -1)
-//       updateCollege(id, string1, collegedata[j]?.name)
-
-//       const updattedData = { ...collegedata[j], name: string1, id: id }
-//       newData.push(updattedData)
-//     }
-//     else {
-//       unMatchedData.push(collegedata[j]?.name)
-//     }
-
-//   }
-// }
-
-// console.log(newData, newData.length, 'newData')
-
-
-// console.log(unMatchedData, unMatchedData.length, 'unMatchedData')
-
-// const mergedArray = [...newData, ...collegedata];
-
-// const uniqueArray = mergedArray.filter(
-//   (item, index, self) =>
-//     index ===
-//     self.findIndex(
-//       (t) => t.link === item.link && t.name === item.name
-//     )
-// );
-
-// console.log(uniqueArray.length, 'uniqueArray');
-
-
-
-
-
-
-
-
-
-
-
-// //geting exams
 async function updateCollege(id: string, name: string, where: string) {
   const response = await fetch("http://localhost:4000/", {
     method: "POST",
     body: JSON.stringify({
-      query: `mutation UpdateCampuses($update: CampusUpdateInput) {
-        updateCampuses(update: $update) {
-          campuses {
-            is_main
-            name
+      query: `
+      mutation UpdateCampuses($where: CampusWhere, $update: CampusUpdateInput) {
+          updateCampuses(where: $where, update: $update) {
+            campuses {
+              name
+            }
           }
-        }
-      }`,
+        }`,
       variables: {
-        update: {
-          id: id,
-          name: name
+        "where": {
+          "name": where
         },
-        where: {
-          name: where
+        "update": {
+          "id": id
         }
       }
     }),
@@ -191,62 +126,74 @@ async function updateCollege(id: string, name: string, where: string) {
 }
 
 
-// async function update3(id: string, name: string, where: string) {
-//   const response = await fetch("http://localhost:4000/", {
-//     method: "POST",
-//     body: JSON.stringify({
-//       query: `mutation UpdateCampuses($where: CampusWhere, $update: CampusUpdateInput) {
-//         updateCampuses(where: $where, update: $update) {
-//           campuses {
-//             name
-//             id
-//           }
-//         }
-//       }`,
-//       variables: {
-//         where: {
-//           collegeHas: {
-//             name: null
-//           }
-//         },
-//         update: {
-//           name: null
-//         }
-//       }
-//     }),
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//   });
+const all = async () => {
+  const data = await getcollege()
+  const collegeData = data?.campuses
+  let count = 1
 
-//   const { data } = await response.json();
-//   console.log(data, 'exam')
-//   return data;
+  for (let i = 0; i < exalData.length; i++) {
+    const string1 = exalData[i][4];
+    for (let j = 0; j < collegeData.length; j++) {
 
-// }
+      const string2 = collegeData[j].name;
+      const isMatch = fuzzySearch(string1, string2);
+      if (isMatch) {
+        count++
+        const strr = string1.split(' (Id:')
+        const id = strr[1].slice(1, -1)
+        console.log(id, 'id', collegeData[j]?.name)
+        updateCollege(id, string1, collegeData[j]?.name)
+
+      }
+    }
+  }
+
+  console.log(count)
+
+
+
+}
+
+all()
 
 
 
 
 
 
-// const UpdateCollege = async () => {
-//   const data = await getcollege()
-//   const collegeData = data?.campuses
-//   console.log(collegeData, 'collegeData')
-// }
-
-// UpdateCollege()
 
 
-// getExams()
 
 
-// Usage example
-// const string1 = 'Aalim Muhammed Salegh College of Engineering,Chennai';
-// const string2 = 'Aalim Muhammed Salegh 3243  Engineering ';
 
-// const isMatch = fuzzySearch(string1, string2);
-// console.log(`Match found: ${isMatch}`);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// //geting exams
+
+
+
+
+
+
+
+
+
+
 
 
